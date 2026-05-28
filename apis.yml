@@ -1,0 +1,32 @@
+aid: acrelens
+name: AcreLens
+description: "Land suitability scoring API for any US property: off-grid, rural, recreational, investment"
+url: https://www.acrelens.com
+specificationVersion: '0.20'
+created: '2026-05-28'
+modified: '2026-05-28'
+x-source: public-apis/public-apis
+x-category: "Open Data"
+x-tier: 3
+x-tier-reason: bulk-registered-from-public-apis
+tags:
+  - Open Data
+  - Public APIs
+apis:
+  - name: AcreLens
+    description: "Land suitability scoring API for any US property: off-grid, rural, recreational, investment"
+    humanURL: https://www.acrelens.com
+    baseURL: https://www.acrelens.com
+    tags:
+      - Open Data
+    properties:
+      - type: Documentation
+        url: https://www.acrelens.com
+common:
+  - type: Website
+    url: https://www.acrelens.com
+  - type: PublicAPIsListing
+    url: https://github.com/public-apis/public-apis
+maintainers:
+  - FN: Kin Lane
+    email: kin@apievangelist.com
