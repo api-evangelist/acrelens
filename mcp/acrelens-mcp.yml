@@ -16,14 +16,26 @@ deployment:
 tools_count: 5
 tools:
 - name: analyze_land
-  description: ''
+  description: 'Generates a comprehensive land analysis report for a US property through one of four analytical
+    lenses: off_grid, rural_residential, recreational, or investment. Call this when the user asks for
+    a full analysis of a specific property. If th'
 - name: get_land_quick_score
-  description: ''
+  description: Get a fast suitability score (0-100) for a US property without generating a full report.
+    Call this when the user wants a quick go/no-go assessment or an initial screening before committing
+    to a full analysis. Returns a single score with con
 - name: get_state_land_profile
-  description: ''
+  description: Retrieve state-level land intelligence data covering regulation, climate, solar potential,
+    water access, and building codes. Call this when the user wants general context about a US state before
+    drilling into a specific property. Returns st
 - name: compare_properties
-  description: ''
+  description: Compare 2–5 US properties side by side using the same analysis mode. Call this when the
+    user is evaluating multiple parcels or listings and wants a comparative view. Kicks off the analyses
+    asynchronously and returns a batch ID plus one repo
 - name: get_solar_potential
-  description: ''
+  description: Estimate solar energy production potential for a US address using NREL PVWatts data. Call
+    this when the user asks about solar power viability, off-grid energy, or panel sizing. Returns estimated
+    annual production and a typical installed-cos
 tools_source: live tools/list via initialize handshake, 2026-09-12 (signals/audit_mcp_authorship.py --probe)
 authorship: provider
+descriptions_source: live tools/list (authorship probe or saved capture); filled by backfill-tools-from-authorship.py
+  --descriptions, 2026-09-28
