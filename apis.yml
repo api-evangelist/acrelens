@@ -39,7 +39,6 @@ apis:
   - name: AcreLens
     description: "Land suitability scoring API for any US property: off-grid, rural, recreational, investment"
     humanURL: https://www.acrelens.com
-    baseURL: https://www.acrelens.com
     tags:
       - Open Data
     properties:
