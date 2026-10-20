@@ -18,23 +18,30 @@ tools:
 - name: analyze_land
   description: 'Generates a comprehensive land analysis report for a US property through one of four analytical
     lenses: off_grid, rural_residential, recreational, or investment. Call this when the user asks for
-    a full analysis of a specific property. If th'
+    a full analysis of a specific property. If the user''s intent is unclear, ask which mode to use before
+    calling. Returns a report ID and poll URL — the final structured report (scores, confidence ratings,
+    narrative summary, source citations) is delivered asynchronously via polling or webhook. Consumes
+    one analysis credit from your AcreLens account.'
 - name: get_land_quick_score
   description: Get a fast suitability score (0-100) for a US property without generating a full report.
     Call this when the user wants a quick go/no-go assessment or an initial screening before committing
-    to a full analysis. Returns a single score with con
+    to a full analysis. Returns a single score with confidence level and one-sentence rationale. Consumes
+    a partial (0.25) analysis credit from your AcreLens account.
 - name: get_state_land_profile
   description: Retrieve state-level land intelligence data covering regulation, climate, solar potential,
     water access, and building codes. Call this when the user wants general context about a US state before
-    drilling into a specific property. Returns st
+    drilling into a specific property. Returns structured multi-mode profiles.
 - name: compare_properties
   description: Compare 2–5 US properties side by side using the same analysis mode. Call this when the
     user is evaluating multiple parcels or listings and wants a comparative view. Kicks off the analyses
-    asynchronously and returns a batch ID plus one repo
+    asynchronously and returns a batch ID plus one report ID per property (in input order) to poll — scored
+    results arrive via polling or the batch webhook, not inline. Consumes one analysis credit per property
+    from your AcreLens account.
 - name: get_solar_potential
   description: Estimate solar energy production potential for a US address using NREL PVWatts data. Call
     this when the user asks about solar power viability, off-grid energy, or panel sizing. Returns estimated
-    annual production and a typical installed-cos
+    annual production and a typical installed-cost bracket for the system size you specify (default 5
+    kW).
 tools_source: live tools/list via initialize handshake, 2026-09-12 (signals/audit_mcp_authorship.py --probe)
 authorship: provider
 descriptions_source: live tools/list (authorship probe or saved capture); filled by backfill-tools-from-authorship.py
