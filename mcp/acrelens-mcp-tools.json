@@ -1,0 +1,488 @@
+{
+  "endpoint": "https://mcp.acrelens.com/mcp",
+  "captured": "2026-10-20",
+  "method": "initialize + tools/list (anonymous, no tool called; roadmap#992)",
+  "protocol_version": "2025-06-18",
+  "server_info": {
+    "name": "acrelens-mcp",
+    "version": "0.1.0"
+  },
+  "result": {
+    "tools": [
+      {
+        "name": "analyze_land",
+        "description": "Generates a comprehensive land analysis report for a US property through one of four analytical lenses: off_grid, rural_residential, recreational, or investment. Call this when the user asks for a full analysis of a specific property. If the user's intent is unclear, ask which mode to use before calling. Returns a report ID and poll URL — the final structured report (scores, confidence ratings, narrative summary, source citations) is delivered asynchronously via polling or webhook. Consumes one analysis credit from your AcreLens account.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "Full street address of the US property (e.g. \"123 Cabin Rd, Taos, NM\")."
+            },
+            "state": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "2-letter US state code (e.g. \"NM\")."
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "off_grid",
+                "rural_residential",
+                "recreational",
+                "investment"
+              ],
+              "description": "Analysis lens: off_grid, rural_residential, recreational, or investment."
+            },
+            "county": {
+              "type": "string",
+              "description": "County name (recommended for better regulation research)."
+            },
+            "acreage": {
+              "type": "number",
+              "description": "Total acreage of the parcel."
+            },
+            "lat": {
+              "type": "number",
+              "description": "Latitude (skip geocoding if provided)."
+            },
+            "lng": {
+              "type": "number",
+              "description": "Longitude (skip geocoding if provided)."
+            }
+          },
+          "required": [
+            "address",
+            "state",
+            "mode"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Analyze Land",
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "report_id": {
+              "type": "string",
+              "description": "Unique ID for the report. Use this with the poll URL to retrieve the final structured report."
+            },
+            "status": {
+              "type": "string",
+              "description": "Report status. Initially \"authorized\" or \"processing\"; transitions to \"completed\" or \"failed\" once analysis finishes."
+            },
+            "mode": {
+              "type": "string",
+              "description": "The analysis lens that was applied (echoed from the request)."
+            },
+            "estimated_completion_seconds": {
+              "type": "number",
+              "description": "Approximate seconds until the report is ready. Use as a hint for when to first poll."
+            },
+            "poll_url": {
+              "type": "string",
+              "description": "Absolute URL to GET the report. Returns 202 while processing, 200 with full body once completed."
+            }
+          },
+          "required": [
+            "report_id",
+            "status",
+            "mode",
+            "estimated_completion_seconds",
+            "poll_url"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      },
+      {
+        "name": "get_land_quick_score",
+        "description": "Get a fast suitability score (0-100) for a US property without generating a full report. Call this when the user wants a quick go/no-go assessment or an initial screening before committing to a full analysis. Returns a single score with confidence level and one-sentence rationale. Consumes a partial (0.25) analysis credit from your AcreLens account.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "Full street address of the US property."
+            },
+            "state": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "2-letter US state code (e.g. \"NM\")."
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "off_grid",
+                "rural_residential",
+                "recreational",
+                "investment"
+              ],
+              "description": "Analysis lens: off_grid, rural_residential, recreational, or investment."
+            }
+          },
+          "required": [
+            "address",
+            "state",
+            "mode"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Land Quick Score",
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "report_id": {
+              "type": "string",
+              "description": "Unique ID for the underlying quick-mode report."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "completed",
+                "processing"
+              ],
+              "description": "\"completed\" when the score is ready; \"processing\" if the poll timed out and the caller should retry the report later."
+            },
+            "score": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Overall suitability score 0-100. Null while still processing."
+            },
+            "confidence": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Aggregate confidence level derived from per-category confidences. Null while still processing."
+            },
+            "summary": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "One-sentence rationale for the score. Null while still processing or if no summary was generated."
+            }
+          },
+          "required": [
+            "report_id",
+            "status",
+            "score",
+            "confidence",
+            "summary"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      },
+      {
+        "name": "get_state_land_profile",
+        "description": "Retrieve state-level land intelligence data covering regulation, climate, solar potential, water access, and building codes. Call this when the user wants general context about a US state before drilling into a specific property. Returns structured multi-mode profiles.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "state_code": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "2-letter US state code (e.g. \"NM\")."
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "off_grid",
+                "rural_residential",
+                "recreational",
+                "investment"
+              ],
+              "description": "Optional mode filter. If omitted, returns all 4 modes."
+            }
+          },
+          "required": [
+            "state_code"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get State Land Profile",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "state_code": {
+              "type": "string",
+              "description": "2-letter US state code echoed from the request."
+            },
+            "modes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "overall_score": {
+                    "type": "number",
+                    "description": "Aggregate suitability score 0-100 for this mode."
+                  },
+                  "sub_scores": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "Per-category sub-scores (solar, water, regulation, climate, etc.) keyed by category name."
+                  },
+                  "summary": {
+                    "type": "string",
+                    "description": "Narrative summary of state-level conditions for this mode."
+                  },
+                  "key_regulations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Notable state-level regulations affecting land use under this mode."
+                  }
+                },
+                "required": [
+                  "overall_score",
+                  "sub_scores",
+                  "summary",
+                  "key_regulations"
+                ],
+                "additionalProperties": false
+              },
+              "description": "Per-mode profile data, keyed by mode name (off_grid, rural_residential, recreational, investment). Contains the requested mode if a filter was provided, otherwise all four."
+            },
+            "shared_facts": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Cross-mode state-level facts (statute citations, agency names, etc.) that apply across all modes."
+            }
+          },
+          "required": [
+            "state_code",
+            "modes"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      },
+      {
+        "name": "compare_properties",
+        "description": "Compare 2–5 US properties side by side using the same analysis mode. Call this when the user is evaluating multiple parcels or listings and wants a comparative view. Kicks off the analyses asynchronously and returns a batch ID plus one report ID per property (in input order) to poll — scored results arrive via polling or the batch webhook, not inline. Consumes one analysis credit per property from your AcreLens account.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "properties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Full street address of the US property."
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "description": "2-letter US state code (e.g. \"NM\")."
+                  },
+                  "county": {
+                    "type": "string",
+                    "description": "County name."
+                  },
+                  "acreage": {
+                    "type": "number",
+                    "description": "Total acreage."
+                  },
+                  "lat": {
+                    "type": "number",
+                    "description": "Latitude."
+                  },
+                  "lng": {
+                    "type": "number",
+                    "description": "Longitude."
+                  }
+                },
+                "required": [
+                  "address",
+                  "state"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 2,
+              "maxItems": 5,
+              "description": "Array of 2–5 properties to compare."
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "off_grid",
+                "rural_residential",
+                "recreational",
+                "investment"
+              ],
+              "description": "Analysis lens to apply to every property."
+            }
+          },
+          "required": [
+            "properties",
+            "mode"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Compare Properties",
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "batch_id": {
+              "type": "string",
+              "description": "Unique batch ID grouping the report jobs created by this call."
+            },
+            "report_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Per-property report IDs in the same order as the input properties array. Poll each individually or wait for the batch.completed webhook."
+            },
+            "status": {
+              "type": "string",
+              "description": "Batch status. Initially \"processing\"; transitions to \"completed\" once all per-property reports terminate."
+            }
+          },
+          "required": [
+            "batch_id",
+            "report_ids",
+            "status"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      },
+      {
+        "name": "get_solar_potential",
+        "description": "Estimate solar energy production potential for a US address using NREL PVWatts data. Call this when the user asks about solar power viability, off-grid energy, or panel sizing. Returns estimated annual production and a typical installed-cost bracket for the system size you specify (default 5 kW).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "US street address (used for geocoding fallback)."
+            },
+            "lat": {
+              "type": "number",
+              "description": "Latitude of the location."
+            },
+            "lng": {
+              "type": "number",
+              "description": "Longitude of the location."
+            },
+            "system_size_kw": {
+              "type": "number",
+              "default": 5,
+              "description": "System size in kilowatts (default 5)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Solar Potential",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "annual_kwh": {
+              "type": "number",
+              "description": "Estimated annual AC electricity production in kilowatt-hours, from NREL PVWatts."
+            },
+            "system_size_kw": {
+              "type": "number",
+              "description": "System nameplate capacity in kilowatts (echoed from the request, default 5)."
+            },
+            "latitude": {
+              "type": "number",
+              "description": "Latitude used for the calculation. Will be the resolved geocoded value if address was provided instead of lat/lng."
+            },
+            "longitude": {
+              "type": "number",
+              "description": "Longitude used for the calculation. Will be the resolved geocoded value if address was provided instead of lat/lng."
+            },
+            "cost_bracket": {
+              "type": "string",
+              "description": "Typical installed-cost range (USD) for a system of this size. Indicative only; varies by region and installer."
+            }
+          },
+          "required": [
+            "annual_kwh",
+            "system_size_kw",
+            "latitude",
+            "longitude",
+            "cost_bracket"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      }
+    ]
+  }
+}
